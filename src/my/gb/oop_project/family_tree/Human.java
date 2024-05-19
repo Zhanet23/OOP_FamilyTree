@@ -1,7 +1,8 @@
 package my.gb.oop_project.family_tree;
 
-import java.lang.ref.Reference;
+
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class Human {
@@ -31,16 +32,33 @@ public class Human {
 
     @Override
     public String toString() {
+        LocalDate now =LocalDate.now();
+
         StringBuilder sb = new StringBuilder();
         sb.append(id).append(" - ");
         sb.append(name).append(" ").append(middleName).append(" ").append(secondName).append(", ");
-        if (dateD == null) sb.append("birthday: ").append(dateB);
-        else sb.append(dateB).append(" - ").append(dateD);
+        if (dateD == null) {
+            sb.append("дата рожд.: ").append(dateB);
+            sb.append(", возраст: ").append(compare(dateB,now));
+        }
+        else {
+            sb.append(dateB).append(" - ").append(dateD);
+            sb.append(", прожил(а): ").append(compare(dateB,dateD));
+        }
+        if (partner != 0)  sb.append(", супруг(а): ").append(partner);
+        else sb.append("супруг(а): нет данных ");
         if (children != null) sb.append(", дети: ").append(children);
         sb.append(", мама: ").append(mother);
         sb.append(", папа: ").append(father);
         return   sb.toString();
     }
+
+    public static long compare(LocalDate first, LocalDate second) {
+        return ChronoUnit.YEARS.between(first,second);
+    }
+
+
+
 
 
 }

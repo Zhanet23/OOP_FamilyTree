@@ -1,7 +1,10 @@
 package my.gb.oop_project.family_tree;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static my.gb.oop_project.family_tree.Human.compare;
 
 public class Family_tree {
     List<Human> familyTree = new ArrayList<>();
@@ -57,7 +60,7 @@ public class Family_tree {
 
         if (temp != null) {    // если такой человек вообще есть в дереве
             System.out.printf("данные по %s %s %s: ", name, middleName, secondName);
-            System.out.println(); printFIOandBirthday(temp.id);
+            System.out.println(); //printFIOandBirthday(temp.id);
             if (temp.mother != 0) {
                  System.out.print("мама: "); printFIOandBirthday(findHumanByID(temp.mother).id);}
             else System.out.println("данных о маме нет");
@@ -82,14 +85,24 @@ public class Family_tree {
     }
 
     public void printFIOandBirthday (int id) {
-        Human temp = null;
+        Human temp = null; LocalDate now =LocalDate.now();
         for (var i : familyTree) {
             if (i.id == id) {temp = i; break;}
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(temp.name).append(" ").append(temp.middleName).append(" ").append(temp.secondName);
-        sb.append(", г.р. ").append(temp.dateB);
-        System.out.println(sb);
+        if (temp != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(temp.name).append(" ").append(temp.middleName).append(" ").append(temp.secondName);
+            sb.append(", ");
+            if (temp.dateD == null) {
+                sb.append(", дата рожд.: ").append(temp.dateB);
+                sb.append(", возраст: ").append(compare(temp.dateB, now));
+            } else {
+                sb.append(temp.dateB).append(" - ").append(temp.dateD);
+                sb.append(", прожил(а): ").append(compare(temp.dateB, temp.dateD)).append(" лет");
+            }
+            System.out.println(sb);
+        }
+
     }
 
 
