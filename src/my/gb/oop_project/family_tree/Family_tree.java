@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-//import static my.gb.oop_project.family_tree.Human.compare;
-
 public class Family_tree {
     private List<Human> familyTree = new ArrayList<>();
 
@@ -63,19 +61,7 @@ public class Family_tree {
         return sb;
     }
 
-    // ---------------------- public methods -------------------------------------------
-    /**
-     * Добавляет данные о человеке в базу данных
-     */
-    public void add (Human human) {
-        addHuman(human);
-    }
-
-    /**
-     * поиск данных(ФИО, даты рожд/смерти(если уже умер) и возраст) о родителях ребенка по id ребенка,
-     * возвращает данные типа StringBuilder
-     */
-    public StringBuilder findParentsByID (int id){
+    private StringBuilder findParentsByID_ft (int id){
         Human child; StringBuilder sb = new StringBuilder();
         child = findByID(id); // ищем в базе человека по id, для которого хотим напечатать инф о его родителях
         if (child != null) {
@@ -92,14 +78,10 @@ public class Family_tree {
         return sb;
     }
 
-    /**
-     * поиск данных(ФИО, даты рожд/смерти(если уже умер) и возраст) о родителях ребенка по ФИО ребенка,
-     * возвращает данные типа StringBuilder
-     */
-    public StringBuilder findParentsByFIO (String name, String middleName, String secondName){
+    private StringBuilder findParentsByFIO_ft (String name, String middleName, String secondName){
         StringBuilder sb = new StringBuilder();
         Human child = findByFIO(name,middleName, secondName);
-        if (child != null)  sb.append(findParentsByID (child.getId()));
+        if (child != null)  sb.append(findParentsByID_ft (child.getId()));
         else {
             sb.append("человека с таким ФИО: ").append(name).append(" ");
             sb.append(middleName).append(" ").append(secondName).append(", ");
@@ -108,27 +90,23 @@ public class Family_tree {
         return sb;
     }
 
-
-    /**
-     * поиск данных по ФИО человека, возвращает данные типа StringBuilder
-     */
-    public StringBuilder findHumanByFIO(String name, String middleName, String secondName) {
-         StringBuilder sb = new StringBuilder(); Human human;
-         human = findByFIO (name, middleName, secondName);
-         if (human != null) { //человек есть в базе
-             sb.append(human);
-         }
-         else sb.append("нет данных о человеке: ").append(name).append(" ").
-                 append(middleName).append(" ").append(secondName);
-         return sb;
+    private StringBuilder findHumanByFIO_ft(String name, String middleName, String secondName) {
+        StringBuilder sb = new StringBuilder(); Human human;
+        human = findByFIO (name, middleName, secondName);
+        if (human != null) { //человек есть в базе
+            sb.append(human);
+        }
+        else sb.append("нет данных о человеке: ").append(name).append(" ").
+                append(middleName).append(" ").append(secondName);
+        return sb;
     }
 
-
-    //поиск детей по ID родителя
-    public StringBuilder findChildrenByIDParent (int id){      // поиск человека по id
+    private StringBuilder findChildrenByIDParent_ft (int id){      // поиск человека по id
         Human temp = findByID(id); //нашли родителя по id
         StringBuilder sb = new StringBuilder();
         if (temp != null) {  //если родитель есть в базе
+            sb.append("Информация о детях для введенного человека: ");
+            sb.append(temp.getFIO(temp)).append("\n");
             if (temp.getChildren() != null) {  //если у него есть дети
                 sb.append("дети: ");
                 for (var i: temp.getChildren()) {
@@ -139,26 +117,64 @@ public class Family_tree {
             else sb.append("детей нет (или нет данных)"); //если детей нет
         }
         return sb;
-     }
+    }
+
+    private StringBuilder findChildrenByFIOParent_ft (String name, String middleName, String secondName) {
+        StringBuilder sb = new StringBuilder();
+        Human parent = findByFIO(name, middleName,secondName); //сначала ищем родителя по заданному ФИО в базе
+        if (parent != null) {
+            sb.append(findChildrenByIDParent(parent.getId())); //получаем инф по id найденного родителя
+        }
+        else sb.append("такого человека нет в базе");
+        return sb;
+    }
+
+
+
+    // ---------------------- public methods -------------------------------------------
+    /**
+     * Добавляет данные о человеке в базу данных
+     */
+    public void add (Human human) {
+        addHuman(human);
+    }
+
+    /**
+     * поиск данных(ФИО, даты рожд/смерти(если уже умер) и возраст) о родителях ребенка по id ребенка,
+     * возвращает данные типа StringBuilder
+     */
+    public StringBuilder findParentsByID (int id){
+        return findParentsByID_ft(id);
+    }
+
+    /**
+     * поиск данных(ФИО, даты рожд/смерти(если уже умер) и возраст) о родителях ребенка по ФИО ребенка,
+     * возвращает данные типа StringBuilder
+     */
+    public StringBuilder findParentsByFIO (String name, String middleName, String secondName){
+        return findParentsByFIO_ft(name,middleName,secondName);
+    }
+
+    /**
+     * поиск данных по ФИО человека, возвращает данные типа StringBuilder
+     */
+    public StringBuilder findHumanByFIO(String name, String middleName, String secondName) {
+        return findHumanByFIO_ft(name, middleName, secondName);
+    }
+
+    //поиск детей по ID родителя
+    public StringBuilder findChildrenByIDParent (int id){      // поиск человека по id
+        return findChildrenByIDParent_ft(id);
+    }
 
      //поиск детей по ФИО родителя
      public StringBuilder findChildrenByFIOParent (String name, String middleName, String secondName) {
-         StringBuilder sb = new StringBuilder();
-         Human parent = findByFIO(name, middleName,secondName); //сначала ищем родителя по заданному ФИО в базе
-         if (parent != null) {
-             sb.append("Информация о детях для введенного человека: ");
-             sb.append(parent.getFIO(parent)).append("\n");
-             sb.append(findChildrenByIDParent(parent.getId())); //получаем инф по id найденного родителя
-         }
-         else sb.append("такого человека нет в базе"); //если детей нет
-         return sb;
+        return findChildrenByFIOParent_ft(name, middleName, secondName);
      }
 
     @Override
     public String toString() {
         return FullInfAboutTree();
     }
-
-
 
 }
