@@ -17,6 +17,76 @@ public class Human {
     private Human mother;
     private Human father;
 
+    /**
+     * Принимает в качестве параметра переменную типа Human (человека)
+     * Возвращает ФИО человека
+     * возвращает данные типа StringBuilder
+     */
+    private StringBuilder fio (Human h) {
+        StringBuilder sb = new StringBuilder();
+        if (h != null) {
+            sb.append("(id-").append(h.id).append(") ");
+            sb.append(h.name).append(" ").append(h.middleName).append(" ");
+            sb.append(h.secondName);
+        }
+        else sb.append(" нет данных");
+        return sb;
+    }
+
+    /**
+     * Принимает в качестве параметра переменную типа Human (человека)
+     * Возвращает даты рождения, смерти(если человек уже умер) и возраст либо сколько лет прожил
+     * возвращает данные типа StringBuilder
+     */
+    private StringBuilder dates (Human h) {
+        LocalDate now =LocalDate.now();
+        StringBuilder sb = new StringBuilder();
+        if (h.dateD == null) {
+            sb.append("дата рожд.: ").append(h.dateB);
+            sb.append(", возраст: ").append(compare(h.dateB,now));
+        }
+        else {
+            sb.append(h.dateB).append(" - ").append(h.dateD);
+            sb.append(", прожил(а): ").append(compare(h.dateB,h.dateD));
+            sb.append(" лет");
+        }
+        sb.append("; ");
+        return sb;
+    }
+
+    // расчет возраста
+    private static long compare(LocalDate first, LocalDate second) {
+        return ChronoUnit.YEARS.between(first,second);
+    }
+
+    /**
+     * Возвращает полную информацию о текущем человеке (возвращает тип StringBuilder
+     */
+    private String getFullInfAboutHuman () {
+        StringBuilder sb = new StringBuilder();
+        sb.append(fio(this)).append(", ");
+        sb.append(dates(this));
+        sb.append("\n");
+        if (partner != null)  sb.append("супруг(а): ").append(fio(partner).append(", ").append(dates(partner)));
+        else sb.append("супруг(а): нет данных");
+        sb.append("\n");
+        if (children != null) {
+            sb.append("дети: ");
+            for (var i: children) {
+                sb.append(fio(i).append(", ").append(" ").append(dates(i)));
+            }
+            sb.append("\n");
+        }
+        else sb.append("детей нет (или нет данных),").append("\n");
+        if (mother!=null) sb.append("мама: ").append(fio(mother)).append(" ").append(dates(mother));
+        else sb.append("мама: данных нет");
+        sb.append(", ");
+        if (father!=null) sb.append("папа: ").append(fio(father)).append(" ").append(dates(father));
+        else sb.append("папа: данных нет;");
+        sb.append("\n");
+        return   sb.toString();
+    }
+
 
 
 
@@ -106,71 +176,27 @@ public class Human {
         this.partner = partner;
     }
 
+    //---------------------------------------------------------------------------
     /**
      * Принимает в качестве параметра переменную типа Human (человека)
-     * Возвращает ФИО человека
-     * возвращает данные типа StringBuilder
+     * Возвращает ФИО человека (типа StringBuilder)
      */
-    public StringBuilder fio (Human h) {
-        StringBuilder sb = new StringBuilder();
-        if (h != null) {
-            sb.append("(id-").append(h.id).append(") ");
-            sb.append(h.name).append(" ").append(h.middleName).append(" ");
-            sb.append(h.secondName);
-        }
-        else sb.append(" нет данных");
-        return sb;
+    public StringBuilder getFIO (Human h) {
+        return fio(h);
     }
 
-    public StringBuilder dates (Human h) {
-        LocalDate now =LocalDate.now();
-        StringBuilder sb = new StringBuilder();
-        if (h.dateD == null) {
-            sb.append("дата рожд.: ").append(h.dateB);
-            sb.append(", возраст: ").append(compare(h.dateB,now));
-        }
-        else {
-            sb.append(h.dateB).append(" - ").append(h.dateD);
-            sb.append(", прожил(а): ").append(compare(h.dateB,h.dateD));
-            sb.append(" лет");
-        }
-        sb.append("; ");
-        return sb;
+    /**
+     * Принимает в качестве параметра переменную типа Human (человека)
+     * Возвращает даты рождения, смерти(если человек уже умер) и возраст либо сколько лет прожил
+     * возвращает данные типа StringBuilder
+     */
+    public StringBuilder getDatesOfHuman (Human h) {
+        return dates(h);
     }
 
     @Override
     public String toString() {
-          StringBuilder sb = new StringBuilder();
-          sb.append(fio(this)).append(", ");
-          sb.append(dates(this));
-          sb.append("\n");
-          if (partner != null)  sb.append("супруг(а): ").append(fio(partner).append(", ").append(dates(partner)));
-          else sb.append("супруг(а): нет данных");
-          sb.append("\n");
-          if (children != null) {
-             sb.append("дети: ");
-             for (var i: children) {
-                sb.append(fio(i).append(", ").append(" ").append(dates(i)));
-             }
-            sb.append("\n");
-          }
-          else sb.append("детей нет (или нет данных),").append("\n");
-          if (mother!=null) sb.append("мама: ").append(fio(mother)).append(" ").append(dates(mother));
-          else sb.append("мама: данных нет");
-          sb.append(", ");
-          if (father!=null) sb.append("папа: ").append(fio(father)).append(" ").append(dates(father));
-          else sb.append("папа: данных нет;");
-          sb.append("\n");
-          return   sb.toString();
+        return getFullInfAboutHuman();
     }
 
-    // расчет возраста
-    private static long compare(LocalDate first, LocalDate second) {
-        return ChronoUnit.YEARS.between(first,second);
-    }
-
-    
-    public Human(int id) {
-        this.id ++;
-    }
 }

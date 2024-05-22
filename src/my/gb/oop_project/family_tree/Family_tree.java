@@ -14,51 +14,51 @@ public class Family_tree {
     }
 
     /**
-     * поиск человека по его ФИО,
-     * возвращает данные типа Human
+     * Без входящих параметров. Возвращает всю информацию из базы (данные типа StringBuilder)
      */
-    private Human findByFIO (String name, String middleName, String secondName) {
-        Human temp = null;
+    private String FullInfAboutTree () {
+        StringBuilder sb = new StringBuilder();
         for (var i : familyTree) {
-            if (i.getName().equalsIgnoreCase(name) && i.getMiddleName().equalsIgnoreCase(middleName) &&
-                    i.getSecondName().equalsIgnoreCase(secondName))
-            {temp = i; break;}
+            sb.append(i); sb.append("\n");
         }
-        return temp;
+        return sb.toString();
     }
 
     /**
-     * поиск человека по его id,
-     * возвращает данные типа Human
+     * поиск человека по его ФИО, возвращает данные типа Human
+     */
+    private Human findByFIO (String name, String middleName, String secondName) {
+        Human tempHuman = null;
+        for (var i : familyTree) {
+            if (i.getName().equalsIgnoreCase(name) && i.getMiddleName().equalsIgnoreCase(middleName) &&
+                    i.getSecondName().equalsIgnoreCase(secondName))
+            {tempHuman = i; break;}
+        }
+        return tempHuman;
+    }
+
+    /**
+     * поиск человека по его id, возвращает данные типа Human
      */
     private Human findByID (int id){
-        Human temp = null;
+        Human tempHuman = null;
         for (var i : familyTree) {
-            if (i.getId() == id) {temp = i; break;}
+            if (i.getId() == id) {tempHuman = i; break;}
         }
-        return temp;
+        return tempHuman;
     }
 
     /**
      * возвращает ФИО, д.рожд и смерти(если человек умер уже), и возраст человека,
-     * на вход принимает переменную типа Human,
-     * возвращает данные типа StringBuilder
+     * на вход принимает переменную типа Human, возвращает данные типа StringBuilder
      */
-    private StringBuilder getFio_Birthday_Age (Human human) {
+    private StringBuilder getFio_Dates (Human human) {
         LocalDate now = LocalDate.now();
         StringBuilder sb = new StringBuilder();
         if (human != null) {
-            //sb.append(human.getName()).append(" ").append(human.getMiddleName()).append(" ").append(human.getSecondName());
-            sb.append(human.fio(human));
+            sb.append(human.getFIO(human));
             sb.append(", ");
-            sb.append(human.dates(human));
-//            if (human.getDateD() == null) {
-//                sb.append(", дата рожд.: ").append(human.getDateB());
-//                sb.append(", возраст: ").append(compare(human.getDateB(), now));
-//            } else {
-//                sb.append(human.getDateB()).append(" - ").append(human.getDateD());
-//                sb.append(", прожил(а): ").append(compare(human.getDateB(), human.getDateD())).append(" лет");
-//            }
+            sb.append(human.getDatesOfHuman(human));
         }
         return sb;
     }
@@ -79,13 +79,13 @@ public class Family_tree {
         Human child; StringBuilder sb = new StringBuilder();
         child = findByID(id); // ищем в базе человека по id, для которого хотим напечатать инф о его родителях
         if (child != null) {
-            sb.append("Данные о родителях ").append(child.fio(child)).append(":\n");
+            sb.append("Данные о родителях ").append(child.getFIO(child)).append(":\n");
             if (child.getMother() != null) {
-                sb.append("мама: ").append(getFio_Birthday_Age(child.getMother())).append("\n");
+                sb.append("мама: ").append(getFio_Dates(child.getMother())).append("\n");
             } else sb.append("данных о маме нет, ");
 
             if (child.getFather() != null) {
-                sb.append("папа: ").append(getFio_Birthday_Age(child.getFather()));
+                sb.append("папа: ").append(getFio_Dates(child.getFather()));
             } else sb.append("данных о папе нет");
         }
         else sb.append("нет данных о человеке c id = ").append(id);
@@ -108,9 +108,12 @@ public class Family_tree {
         return sb;
     }
 
+
+    /**
+     * поиск данных по ФИО человека, возвращает данные типа StringBuilder
+     */
     public StringBuilder findHumanByFIO(String name, String middleName, String secondName) {
-         StringBuilder sb = new StringBuilder();
-         Human human;
+         StringBuilder sb = new StringBuilder(); Human human;
          human = findByFIO (name, middleName, secondName);
          if (human != null) { //человек есть в базе
              sb.append(human);
@@ -129,7 +132,7 @@ public class Family_tree {
             if (temp.getChildren() != null) {  //если у него есть дети
                 sb.append("дети: ");
                 for (var i: temp.getChildren()) {
-                    sb.append(getFio_Birthday_Age(i).append(", "));
+                    sb.append(getFio_Dates(i).append(", "));
                 }
                 sb.append("\n");
             }
@@ -144,7 +147,7 @@ public class Family_tree {
          Human parent = findByFIO(name, middleName,secondName); //сначала ищем родителя по заданному ФИО в базе
          if (parent != null) {
              sb.append("Информация о детях для введенного человека: ");
-             sb.append(parent.fio(parent)).append("\n");
+             sb.append(parent.getFIO(parent)).append("\n");
              sb.append(findChildrenByIDParent(parent.getId())); //получаем инф по id найденного родителя
          }
          else sb.append("такого человека нет в базе"); //если детей нет
@@ -153,12 +156,9 @@ public class Family_tree {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (var i : familyTree) {
-            sb.append(i); sb.append("\n");
-        }
-        return sb.toString();
-
+        return FullInfAboutTree();
     }
+
+
 
 }
