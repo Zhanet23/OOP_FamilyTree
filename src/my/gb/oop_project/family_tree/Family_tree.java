@@ -1,24 +1,74 @@
 package my.gb.oop_project.family_tree;
 
+import org.w3c.dom.ls.LSOutput;
+
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 
 public class Family_tree {
-    private List<Human> familyTree = new ArrayList<>();
+    private static List<Human> familyTree;
 
-    private void addHuman (Human human) {
-        familyTree.add(human);
+    //-----------------конструкторы----------------------------------------------------------
+    public Family_tree() {
+        this(new ArrayList<>());
+    }
+    public Family_tree(List<Human> familyTree) {
+        this.familyTree = familyTree;
+    }
+    //----------------------------------------------------------------------------------------
+
+    private StringBuilder addHuman (Human h) {
+        StringBuilder sb = new StringBuilder();
+        if (h == null) sb.append("не введен человек");
+        else {
+            if (!familyTree.contains(h)) {
+                familyTree.add(h);
+                sb.append("человек успешно добавлен в древо");
+                // если у человека есть информация о родителях, то добавим и родителям информацию о ребенке
+                if (h.getMother() != null) {h.getMother().addChild(h);}
+                if (h.getFather() != null) {h.getFather().addChild(h);}
+                //если вводится информация о старшем родственнике и известны дети у него
+                // то надо добавить детям информацию о родителе
+                if (h.getChildren() != null) {addParentToChildren(h);}
+            }
+            else sb.append("абсолютно идентичная информация о человеке ").append(h.getNames(h).append(" уже имеется в базе, ").
+                    append("код - ").append(findByFIO(h.getName(),h.getMiddleName(),h.getSecondName()).getId()));
+            }
+        return sb;
+    }
+
+    // возвращает отсортированное древо по возрастанию года рождения людей. Возвращает StringBuilder
+    private StringBuilder printSort (){
+        StringBuilder sb = new StringBuilder();
+        Comparator<Human> cc = new Comparator<Human>() {
+            @Override
+            public int compare(Human o1, Human o2) {
+                return o1.getDateB().getYear() - o2.getDateB().getYear();
+            }
+        };
+        familyTree.stream().sorted(cc).forEach(sb::append);
+        return sb;
+    }
+
+    // используется в методе addHuman
+    private void addParentToChildren (Human h){
+        //добавляем отца
+        if (String.valueOf(h.getGender()).equals("Male")) {
+            for (Human child : h.getChildren()) { child.addFather(h);}
+        }
+        else {
+            for (Human child : h.getChildren()) {child.addMother(h);}
+        }
     }
 
     /**
      * Без входящих параметров. Возвращает всю информацию из базы (данные типа StringBuilder)
+     * отсортировано по id
      */
     private String FullInfAboutTree () {
         StringBuilder sb = new StringBuilder();
-        for (var i : familyTree) {
-            sb.append(i); sb.append("\n");
-        }
+        for (var i : familyTree) { sb.append(i); sb.append("\n");}
         return sb.toString();
     }
 
@@ -54,9 +104,7 @@ public class Family_tree {
         LocalDate now = LocalDate.now();
         StringBuilder sb = new StringBuilder();
         if (human != null) {
-            sb.append(human.getFIO(human));
-            sb.append(", ");
-            sb.append(human.getDatesOfHuman(human));
+            sb.append(human.getFIO(human)).append(", ").append(human.getDatesOfHuman(human));
         }
         return sb;
     }
@@ -90,11 +138,21 @@ public class Family_tree {
         return sb;
     }
 
+    // выдает полную информацию о человеке по его фио
     private StringBuilder findHumanByFIO_ft(String name, String middleName, String secondName) {
         StringBuilder sb = new StringBuilder(); Human human;
         human = findByFIO (name, middleName, secondName);
         if (human != null) { //человек есть в базе
             sb.append(human);
+            // добавим информацию о братьях/сестрах
+            sb.append("информация о братьях / сестрах:").append("\n");
+            List<Human> sublins = new ArrayList<>(); sublins = getSubl(human.getId());
+            if (!sublins.isEmpty()) {
+                for (var i : sublins) {
+                    sb.append(i.getFIO(i)).append(", ").append(i.getDatesOfHuman(i)).append("\n");
+                }
+            }
+            else sb.append("нет или нет данных");
         }
         else sb.append("нет данных о человеке: ").append(name).append(" ").
                 append(middleName).append(" ").append(secondName);
@@ -129,15 +187,95 @@ public class Family_tree {
         return sb;
     }
 
+    private List<Human> getParents (Human h){
+        List<Human> parents = new ArrayList<>();
+        if (h.getMother() != null) parents.add(h.getMother());
+        if (h.getFather() != null ) parents.add(h.getFather());
+        return parents;
+    }
+
+    // вызов из метода getSublins
+    private StringBuilder sublins (int id) { //родных и сводных
+        StringBuilder sb = new StringBuilder();
+        Human h = findByID(id); //получили человека, для которого ищем сестер/братьев
+        if (h == null) sb.append("нет человека с таким id в базе");
+        else {
+            List<Human> sublins = new ArrayList<>();
+            sb.append("\n").append("информация о братьях/сестрах для человека: ").append(h.getFIO(h)).append("\n");
+            sublins = getSubl(id); //получили список братьев и сестер
+            if (!sublins.isEmpty()) {
+                for (var i : sublins) {
+                    String t; int idh =i.getId();
+                    String str = String.valueOf(findByID(idh).getGender());
+                    if (str.equals("Male")) t = "брат"; else t = "сестра";
+                    sb.append(t).append(":\n");
+                    Human s = findByID(idh);
+                    sb.append(s.getFIO(s)).append(", ").append(s.getDatesOfHuman(s)).append("\n");
+                }
+            }
+            else sb.append("братьев / сестер нет (или нет информации)");
+        }
+        return sb;
+    }
+
+    //возвращает список sublins List<Human>
+    private List<Human> getSubl (int id) { //родных и сводных
+        List<Human> sublins = new ArrayList<>(); //инициация списка sublins
+        Human h = findByID(id); //получили человека, для которого ищем сестер/братьев
+
+        if (h != null) {
+            // set - чтобы дети не повторялись, двое родителей - т.к. могут быть siblins сводные
+            // в set нельзя добавить Human, тк equals по всем полям, кроме id
+            //это для того, чтобы не добавлялась абсолютно идентичная инф о человеке, а id считается автоматически
+            Set<Integer> sub = new HashSet<>();
+            for (Human par : getParents(h)){ //для каждого родителя
+                for (Human child : par.getChildren()) { //по списку детей родителя
+                    if (h.getId() != child.getId()) sub.add(child.getId());
+                }
+            }
+            // в set находятся id братьев и сестер
+            if (!sub.isEmpty()) { // если set не пустой
+                for (int i : sub) { sublins.add(findByID(i));}
+            }
+        }
+        return sublins;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // ---------------------- public methods -------------------------------------------
     /**
+     * Выдает отсортированное дерево по возрастанию года рождения людей
+     */
+     public StringBuilder printSorted () {
+        return printSort();
+    }
+
+
+    /**
+     * Ищет данные о братьях/сестрах чнловека по его id
+     */
+    public StringBuilder getSublins (int id) {
+        return sublins(id);
+    }
+    /**
      * Добавляет данные о человеке в базу данных
      */
-    public void add (Human human) {
-        addHuman(human);
-    }
+    public StringBuilder add (Human human) {return addHuman(human);}
 
     /**
      * поиск данных(ФИО, даты рожд/смерти(если уже умер) и возраст) о родителях ребенка по id ребенка,
@@ -173,8 +311,6 @@ public class Family_tree {
      }
 
     @Override
-    public String toString() {
-        return FullInfAboutTree();
-    }
+    public String toString() {return FullInfAboutTree();}
 
 }
